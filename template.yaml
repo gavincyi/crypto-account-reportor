@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  crypto-account-reportor
+
+  Sample SAM Template for crypto-account-reportor
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 30
+
+Resources:
+  UpdateBalanceFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: update_balance/
+      Handler: app.lambda_handler
+      Runtime: python3.6
+      Events:
+        DailyUpdateBalanceEvent:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 day)
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  UpdateBalance:
+    Description: "Crypto account update balance"
+    Value: !GetAtt UpdateBalanceFunction.Arn
+  UpdateBalanceIamRole:
+    Description: "Implicit IAM Role created for update balance lambda"
+    Value: !GetAtt UpdateBalanceFunctionRole.Arn

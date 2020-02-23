@@ -1,0 +1,10 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "crypto-account-reportor-app"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-wxoudas8hdlf"
+s3_prefix = "crypto-account-reportor-app"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"

@@ -1,0 +1,3 @@
+boto3
+requests
+ccxt==1.22.91
