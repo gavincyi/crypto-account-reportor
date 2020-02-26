@@ -17,6 +17,11 @@ Resources:
       CodeUri: update_balance/
       Handler: app.lambda_handler
       Runtime: python3.6
+      Policies:
+          - DynamoDBReadPolicy:
+              TableName: "crypto-exchange-keys"
+          - DynamoDBCrudPolicy:
+              TableName: "crypto-exchange-balance"
       Events:
         DailyUpdateBalanceEvent:
           Type: Schedule
