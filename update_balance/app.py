@@ -38,6 +38,7 @@ def lambda_handler(event, context):
         exchange_name = item['exchange']['S']
         key = item['key']['S']
         secret = item['secret']['S']
+        name = item['name']['S']
         exchange = getattr(ccxt, exchange_name.lower())({
             'apiKey': key,
             'secret': secret,
@@ -86,6 +87,7 @@ def lambda_handler(event, context):
                     "currency": {'S': currency},
                     "amount": {'N': str(amount)},
                     "usd_amount": {'N': str(round(usd_amount, 2))},
+                    "name": {'S': name},
                 })
 
     for record in records:
