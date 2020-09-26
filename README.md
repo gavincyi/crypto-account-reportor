@@ -26,7 +26,7 @@ sam local invode "UpdateBalanceFunction" -e events/event.json
 To deploy the app, run
 
 ```
-sam deploy
+sam deploy --guided
 ```
 
 ## Preparation
