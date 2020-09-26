@@ -29,4 +29,14 @@ To deploy the app, run
 sam deploy
 ```
 
+## Preparation
+
+### Create table crypto-exchange-keys 
+
+```
+aws dynamodb create-table \
+--table-name crypto-exchange-keys \
+--attribute-definitions AttributeName=name,AttributeType=string \
+--key-schema AttributeName=name,KeyType=HASH
+```
 
