@@ -36,7 +36,19 @@ sam deploy
 ```
 aws dynamodb create-table \
 --table-name crypto-exchange-keys \
---attribute-definitions AttributeName=name,AttributeType=string \
---key-schema AttributeName=name,KeyType=HASH
+--attribute-definitions AttributeName=name,AttributeType=S \
+--key-schema AttributeName=name,KeyType=HASH \
+--provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5
 ```
+
+### Create table crypto-exchange-balance
+
+```
+aws dynamodb create-table \
+--table-name crypto-exchange-balance \
+--attribute-definitions AttributeName=id,AttributeType=S \
+--key-schema AttributeName=id,KeyType=HASH \
+--provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5
+```
+
 
