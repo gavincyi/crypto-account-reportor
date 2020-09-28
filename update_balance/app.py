@@ -1,12 +1,17 @@
 import json
 from datetime import datetime
+import requests
 
 import boto3
 
 import ccxt
 
 
-# import requests
+def get_usd_rate(currency):
+    rates = requests.get('https://api.exchangeratesapi.io/latest').json()['rates']
+    rates['EUR'] = 1.0
+    eur_usd = rates['USD']
+    return rates[currency] * eur_usd
 
 
 def lambda_handler(event, context):
@@ -66,6 +71,10 @@ def lambda_handler(event, context):
                 amount = float(amount)
                 if currency == 'USD':
                     usd_amount = amount
+                elif (currency + '/' + 'USD') not in exchange_tickers:
+                    usd_amount = (
+                        get_usd_rate(currency) * amount
+                    )
                 else:
                     usd_amount = (
                         exchange_tickers[currency + '/' + 'USD']['close']
