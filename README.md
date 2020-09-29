@@ -31,6 +31,10 @@ sam deploy --guided
 
 ## Preparation
 
+The following commands requires running the commands with `awscli`. Please
+refer to the installation [guide](https://github.com/aws/aws-cli) for the
+package in the interactive machines.
+
 ### Create table crypto-exchange-keys 
 
 ```
@@ -51,4 +55,22 @@ aws dynamodb create-table \
 --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5
 ```
 
+### Insert exchange accounts
+
+First you need to create the exchange API keys first. It is highly recommended to create a 
+**read-only** key for security.
+
+Then amend the file `crypto-exchange-keys.json` on the following values
+
+* name: An unique name of the key
+* exchange: The exchange name, e.g. bitfinex
+* key: The exchange API key
+* secret: The exchange API secret
+* types: A list of account types. For example, `spot` in Binance.
+
+Then run the command to insert the exchange key.
+
+```
+aws dynamodb put-item --table-name crypto-exchange-keys --item file://crypto-exchange-keys.json 
+```
 

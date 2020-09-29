@@ -1,0 +1,7 @@
+{
+    "name": {"S": "<unique-name>"},
+    "exchange": {"S": "<exchange-name>"},
+    "key": {"S": "<key>"},
+    "secret": {"S": "<secret>"},
+    "types": {"L": [{"S": "spot"}]}
+}
