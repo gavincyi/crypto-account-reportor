@@ -6,12 +6,22 @@ import boto3
 
 import ccxt
 
+USD_BASE_CURRENCIES = ['USD', 'USDT', 'USDC']
+
 
 def get_usd_rate(currency):
     rates = requests.get('https://api.exchangeratesapi.io/latest').json()['rates']
     rates['EUR'] = 1.0
     eur_usd = rates['USD']
     return rates[currency] * eur_usd
+
+
+def get_usd_base_currency(exchange_tickers, currency):
+    for base_currency in USD_BASE_CURRENCIES:
+        if (currency + '/' + base_currency) in exchange_tickers:
+            return currency + '/' + base_currency
+
+    return None
 
 
 def lambda_handler(event, context):
@@ -69,16 +79,18 @@ def lambda_handler(event, context):
         for balance_type, total_balance in total_balances.items():
             for currency, amount in total_balance.items():
                 amount = float(amount)
-                if currency == 'USD':
+                usd_base_currency = (
+                    get_usd_base_currency(exchange_tickers, currency)
+                )
+                if currency in USD_BASE_CURRENCIES:
                     usd_amount = amount
-                elif (currency + '/' + 'USD') not in exchange_tickers:
+                elif usd_base_currency:
                     usd_amount = (
-                        get_usd_rate(currency) * amount
+                        exchange_tickers[usd_base_currency]['close'] * amount
                     )
                 else:
                     usd_amount = (
-                        exchange_tickers[currency + '/' + 'USD']['close']
-                        * amount
+                        get_usd_rate(currency) * amount
                     )
 
                 records.append({
