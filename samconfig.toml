@@ -8,3 +8,4 @@ s3_prefix = "crypto-account-reportor-app"
 region = "us-east-1"	
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
+

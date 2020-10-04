@@ -8,6 +8,10 @@ import ccxt
 
 USD_BASE_CURRENCIES = ['USD', 'USDT', 'USDC']
 
+CRYPTO_BASE_CURRENCIES = ['BTC']
+
+SMALL_BALANCE = 1e-6
+
 
 def get_usd_rate(currency):
     rates = requests.get('https://api.exchangeratesapi.io/latest').json()['rates']
@@ -22,6 +26,14 @@ def get_usd_base_currency(exchange_tickers, currency):
             return currency + '/' + base_currency
 
     return None
+    
+    
+def get_crypto_base_currency(exchange_tickers, currency):
+    for base_currency in CRYPTO_BASE_CURRENCIES:
+        if (currency + '/' + base_currency) in exchange_tickers:
+            return currency + '/' + base_currency, base_currency
+            
+    return None, None
 
 
 def lambda_handler(event, context):
@@ -79,14 +91,31 @@ def lambda_handler(event, context):
         for balance_type, total_balance in total_balances.items():
             for currency, amount in total_balance.items():
                 amount = float(amount)
+                
+                # Do not price the small balance
+                if amount < SMALL_BALANCE:
+                    continue
+                
                 usd_base_currency = (
                     get_usd_base_currency(exchange_tickers, currency)
+                )
+                crypto_base_currency, crypto_fiat = (
+                    get_crypto_base_currency(exchange_tickers, currency)
                 )
                 if currency in USD_BASE_CURRENCIES:
                     usd_amount = amount
                 elif usd_base_currency:
                     usd_amount = (
                         exchange_tickers[usd_base_currency]['close'] * amount
+                    )
+                elif crypto_base_currency:
+                    usd_base_crypto_fiat = (
+                        get_usd_base_currency(exchange_tickers, crypto_fiat)
+                    )
+                    usd_amount = (
+                        exchange_tickers[crypto_base_currency]['close'] *
+                        exchange_tickers[usd_base_crypto_fiat]['close'] *
+                        amount
                     )
                 else:
                     usd_amount = (
