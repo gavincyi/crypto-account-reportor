@@ -6,7 +6,7 @@ import boto3
 
 import ccxt
 
-USD_BASE_CURRENCIES = ['USD', 'USDT', 'USDC']
+USD_BASE_CURRENCIES = ['USD', 'USDT', 'USDC', 'BUSD']
 
 CRYPTO_BASE_CURRENCIES = ['BTC']
 
