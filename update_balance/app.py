@@ -16,9 +16,10 @@ USD_RATES = None
 
 
 def initialise_usd_rates(key):
-    rates = requests.get('http://api.exchangeratesapi.io/v1/latest?access_key=%s' % key)
+    rates = requests.get('http://api.exchangeratesapi.io/v1/latest?access_key=%s' % key).json()['rates']
     rates['EUR'] = 1.0
     eur_usd = rates['USD']
+    global USD_RATES
     USD_RATES = {
         currency: rate * eur_usd 
         for currency, rate in rates.items()

@@ -16,7 +16,7 @@ Resources:
     Properties:
       CodeUri: update_balance/
       Handler: app.lambda_handler
-      Runtime: python3.6
+      Runtime: python3.7
       Policies:
           - DynamoDBReadPolicy:
               TableName: "crypto-exchange-keys"
