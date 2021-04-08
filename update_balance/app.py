@@ -12,12 +12,23 @@ CRYPTO_BASE_CURRENCIES = ['BTC']
 
 SMALL_BALANCE = 1e-6
 
+USD_RATES = None
 
-def get_usd_rate(currency):
-    rates = requests.get('https://api.exchangeratesapi.io/latest').json()['rates']
+
+def initialise_usd_rates(key):
+    rates = requests.get('http://api.exchangeratesapi.io/v1/latest?access_key=%s' % key).json()['rates']
     rates['EUR'] = 1.0
     eur_usd = rates['USD']
-    return rates[currency] * eur_usd
+    global USD_RATES
+    USD_RATES = {
+        currency: rate * eur_usd 
+        for currency, rate in rates.items()
+    }
+
+
+def get_usd_rate(currency):
+    assert USD_RATES, "USD rates are not yet initialized"
+    return USD_RATES[currency]
 
 
 def get_usd_base_currency(exchange_tickers, currency):
@@ -45,6 +56,7 @@ def lambda_handler(event, context):
         API Gateway Lambda Proxy Input Format
 
         Event doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
+        
 
     context: object, required
         Lambda Context runtime methods and attributes
@@ -60,17 +72,42 @@ def lambda_handler(event, context):
     records = []
     current_time = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
     client = boto3.client('dynamodb')
+    crypto_exchange_keys = (
+        client.scan(TableName='crypto-exchange-keys')['Items']
+    )
+    
+    # Initialise the USD rates
+    assert any([
+        item['exchange']['S'] == 'exchangeratesapi' 
+        for item in crypto_exchange_keys
+    ]), "No exchangeratesapi key to initialise the USD rates"
+    exchangeratesapi_key = [
+        item['key']['S']
+        for item in crypto_exchange_keys
+        if item['exchange']['S'] == 'exchangeratesapi' 
+    ][0]
+    initialise_usd_rates(exchangeratesapi_key)
+    print("USD rates are initialised as %s" % USD_RATES)
+    
+    # Iterate the crypto exchange keys
+    crypto_exchange_keys = [
+        item for item in crypto_exchange_keys
+        if item['exchange']['S'] != 'exchangeratesapi' 
+    ]
 
-    for item in client.scan(TableName='crypto-exchange-keys')['Items']:
+    for item in crypto_exchange_keys:
         exchange_name = item['exchange']['S']
         key = item['key']['S']
         secret = item['secret']['S']
         name = item['name']['S']
-        exchange = getattr(ccxt, exchange_name.lower())({
+        exchange_params = {
             'apiKey': key,
             'secret': secret,
             'enableRateLimit': True,
-        })
+        }
+        if 'uid' in item:
+            exchange_params['uid'] = item['uid']['S']
+        exchange = getattr(ccxt, exchange_name.lower())(exchange_params)
 
         total_balances = {}
 
@@ -82,9 +119,7 @@ def lambda_handler(event, context):
                 )
                 total_balances[balance_type] = total_balance
         else:
-            raise NotImplementedError(
-                'Cannot work without balance type'
-            )
+            continue
 
         exchange_tickers = exchange.fetch_tickers()
 
